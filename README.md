@@ -53,6 +53,9 @@ Chrome silently downloads ~4.5 GB of ML models: Gemini Nano (full LLM), toxicity
 
 ## Usage
 
+### Open Terminal
+Press **Cmd + Space**, type **Terminal**, and hit Enter. Then paste the commands below.
+
 ```bash
 # Clone the repo
 git clone https://github.com/mmabd/macos-hardening.git
