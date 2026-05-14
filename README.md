@@ -54,6 +54,10 @@ Chrome silently downloads ~4.5 GB of ML models: Gemini Nano (full LLM), toxicity
 ## Usage
 
 ```bash
+# Clone the repo
+git clone https://github.com/mmabd/macos-hardening.git
+cd macos-hardening
+
 # 1. See what Apple is collecting (read-only, safe)
 bash scan.sh
 
