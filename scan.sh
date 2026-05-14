@@ -99,7 +99,10 @@ echo -e "\n${YELLOW}[Pegasus / Spotlight Telemetry]${NC}"
 PEGASUS="$HOME/Library/Group Containers/group.com.apple.PegasusConfiguration"
 check_dir "$PEGASUS" "PegasusConfiguration"
 check_dir "$PEGASUS/rawSessions" "Pegasus raw sessions"
+check_dir "$PEGASUS/session" "Pegasus session data"
 check_dir "$PEGASUS/feedback" "Pegasus feedback (upload queue)"
+check_dir "$PEGASUS/EngagedCompletions" "Pegasus engaged completions"
+check_dir "$PEGASUS/local" "Pegasus local data"
 
 # ============================================================
 echo -e "\n${YELLOW}[PersonalizationPortrait (User Dossier)]${NC}"
@@ -124,8 +127,11 @@ echo -e "\n${YELLOW}[Spotlight ML Pipelines]${NC}"
 SPOTLIGHT="$HOME/Library/Metadata/CoreSpotlight"
 check_dir "$SPOTLIGHT/SpotlightKnowledge/index.V2/DocumentProcessing" "ML document processing"
 check_dir "$SPOTLIGHT/SpotlightKnowledge/index.V2/KG" "Knowledge graph"
+check_dir "$SPOTLIGHT/SpotlightKnowledge/index.V2/updates" "Spotlight updates"
 check_dir "$SPOTLIGHT/SpotlightKnowledgeEvents/index.V2/embedding_cache" "ML embedding cache"
+check_dir "$SPOTLIGHT/Priority" "Spotlight priority data"
 check_dir "$SPOTLIGHT/PasteboardHistory" "Clipboard history"
+check_dir "$SPOTLIGHT/PipelineCompletenessReporting" "Pipeline reporting"
 
 for plist in coreduet suggestions textunderstandingd photos; do
     if [ -f "$SPOTLIGHT/com.apple.corespotlight.receiver.$plist.plist" ]; then
@@ -146,6 +152,8 @@ check_dir "$HOME/Library/Group Containers/group.com.apple.CoreSpeech" "CoreSpeec
 check_dir "$HOME/Library/Group Containers/group.com.apple.siri.remembers" "siri.remembers"
 check_dir "$HOME/Library/Group Containers/group.com.apple.siri.userfeedbacklearning" "Siri feedback learning"
 check_dir "$HOME/Library/Group Containers/group.com.apple.replayd" "replayd (screen capture)"
+check_dir "$HOME/Library/Group Containers/group.com.apple.screencapture/ScreenRecordings" "ScreenRecordings"
+check_dir "$HOME/Library/Application Support/com.apple.replayd" "replayd app support"
 check_dir "$HOME/Library/AppleMediaServices/Engagement" "App Store engagement"
 
 # ============================================================
@@ -157,6 +165,10 @@ check_dir "$CHROME/OptGuideOnDeviceModel" "Gemini Nano LLM"
 check_dir "$CHROME/optimization_guide_model_store" "ML model store"
 check_dir "$CHROME/screen_ai" "Screen AI"
 check_dir "$CHROME/SODA" "Speech recognition"
+check_dir "$CHROME/SODALanguagePacks" "SODA language packs"
+check_dir "$CHROME/WasmTtsEngine" "TTS engine"
+check_dir "$CHROME/OnDeviceHeadSuggestModel" "Autocomplete model"
+check_dir "$CHROME/OptimizationHints" "Optimization hints"
 
 # ============================================================
 echo -e "\n${YELLOW}[Network]${NC}"

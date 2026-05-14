@@ -20,6 +20,11 @@ if [ -f "$LOG" ] && [ $(stat -f%z "$LOG" 2>/dev/null || echo 0) -gt 1048576 ]; t
     tail -500 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
 fi
 
+if [ ! -f "$HOME/.macos-hardening/.nuke-completed" ]; then
+    log "SKIPPED: nuke.sh has not been run yet. Run 'sudo bash nuke.sh' first."
+    exit 0
+fi
+
 FOUND_ISSUE=false
 
 # ============================================================
@@ -34,14 +39,16 @@ for proc in mediaanalysisd triald parsecd; do
     fi
 done
 
-if pgrep -x aned > /dev/null 2>&1; then
-    if pkill -9 aned 2>/dev/null; then
-        log "KILLED aned"
-    else
-        log "FOUND aned (root-owned, cannot kill from user context)"
+for root_proc in aned triald_system; do
+    if pgrep -x "$root_proc" > /dev/null 2>&1; then
+        if pkill -9 "$root_proc" 2>/dev/null; then
+            log "KILLED $root_proc"
+        else
+            log "FOUND $root_proc (root-owned, cannot kill from user context)"
+        fi
+        FOUND_ISSUE=true
     fi
-    FOUND_ISSUE=true
-fi
+done
 
 # ============================================================
 # Re-lock all protected directories
@@ -53,8 +60,11 @@ relock() {
         local perms=$(stat -f '%OLp' "$dir" 2>/dev/null)
         if [ "$perms" != "000" ]; then
             find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
-            chmod 000 "$dir" 2>/dev/null
-            log "RE-LOCKED $dir (was $perms)"
+            if chmod 000 "$dir" 2>/dev/null; then
+                log "RE-LOCKED $dir (was $perms)"
+            else
+                log "FAILED to re-lock $dir (permission denied — re-run: sudo bash nuke.sh)"
+            fi
             FOUND_ISSUE=true
         fi
     fi

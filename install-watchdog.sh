@@ -8,6 +8,11 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
+if [ "$EUID" -eq 0 ]; then
+    echo -e "${RED}Do not run with sudo. Run as: bash install-watchdog.sh${NC}"
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WATCHDOG_SRC="$SCRIPT_DIR/watchdog.sh"
 WATCHDOG_DST="$HOME/.macos-hardening/watchdog.sh"
@@ -40,9 +45,9 @@ cat > "$PLIST_DST" << EOF
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/macos-hardening-stdout.log</string>
+    <string>${HOME}/.macos-hardening/watchdog-stdout.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/macos-hardening-stderr.log</string>
+    <string>${HOME}/.macos-hardening/watchdog-stderr.log</string>
 </dict>
 </plist>
 EOF

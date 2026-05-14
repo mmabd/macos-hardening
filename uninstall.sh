@@ -9,6 +9,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+if [ "$EUID" -eq 0 ]; then
+    echo -e "${RED}Do not run with sudo. Run as: bash uninstall.sh${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}Uninstalling macOS hardening watchdog...${NC}"
 
 PLIST="$HOME/Library/LaunchAgents/com.macos-hardening.watchdog.plist"
@@ -89,6 +94,12 @@ for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.pa
     echo -e "  ${GREEN}ENABLED${NC} $svc"
 done
 
+echo ""
+echo -e "${YELLOW}NOTE: System-level service overrides require sudo to restore:${NC}"
+echo "  sudo launchctl enable system/com.apple.mediaanalysisd"
+echo "  sudo launchctl enable system/com.apple.aned"
+echo "  sudo launchctl enable system/com.apple.triald"
+echo "  sudo launchctl enable system/com.apple.parsecd"
 echo ""
 echo -e "${YELLOW}NOTE: /etc/hosts blocks were NOT removed.${NC}"
 echo "To remove them manually, edit /etc/hosts and delete the"

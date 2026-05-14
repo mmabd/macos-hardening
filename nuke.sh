@@ -18,11 +18,23 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 REAL_USER="${SUDO_USER:-$USER}"
+if [ "$REAL_USER" = "root" ]; then
+    echo -e "${RED}ERROR: Cannot determine real user.${NC}"
+    echo "Run with: sudo bash nuke.sh"
+    echo "Do NOT use 'su' or 'sudo su' before running this script."
+    exit 1
+fi
+
 REAL_HOME=$(dscl . -read /Users/"$REAL_USER" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
 if [ -z "$REAL_HOME" ]; then
     REAL_HOME="/Users/$REAL_USER"
 fi
-USER_ID=$(id -u "$REAL_USER")
+
+USER_ID=$(id -u "$REAL_USER" 2>/dev/null)
+if [ -z "$USER_ID" ]; then
+    echo -e "${RED}ERROR: Cannot resolve UID for user '$REAL_USER'${NC}"
+    exit 1
+fi
 
 echo -e "${RED}"
 echo "======================================"
@@ -33,6 +45,13 @@ echo "User: $REAL_USER (UID $USER_ID)"
 echo "Home: $REAL_HOME"
 echo ""
 
+read -p "This will permanently delete all tracking data. Type YES to continue: " CONFIRM
+if [ "$CONFIRM" != "YES" ]; then
+    echo "Aborted."
+    exit 0
+fi
+echo ""
+
 TOTAL_FREED=0
 
 purge_and_lock() {
@@ -41,6 +60,7 @@ purge_and_lock() {
 
     if [ -d "$dir" ]; then
         local size=$(du -sk "$dir" 2>/dev/null | awk '{print $1}')
+        size=${size:-0}
         find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
         chmod 000 "$dir" 2>/dev/null
         chown "$REAL_USER" "$dir" 2>/dev/null
@@ -66,7 +86,7 @@ echo -e "${YELLOW}[1/9] Killing tracking processes...${NC}"
 # ============================================================
 
 for proc in mediaanalysisd aned triald triald_system parsecd mdworker mdbulkimport; do
-    if pkill -9 "$proc" 2>/dev/null; then
+    if pkill -9 -x "$proc" 2>/dev/null; then
         echo -e "  ${GREEN}KILLED${NC} $proc"
     fi
 done
@@ -224,6 +244,11 @@ fi
 
 # ============================================================
 echo ""
+mkdir -p "$REAL_HOME/.macos-hardening" 2>/dev/null
+chown "$REAL_USER" "$REAL_HOME/.macos-hardening" 2>/dev/null
+date '+%Y-%m-%d %H:%M:%S' > "$REAL_HOME/.macos-hardening/.nuke-completed" 2>/dev/null
+chown "$REAL_USER" "$REAL_HOME/.macos-hardening/.nuke-completed" 2>/dev/null
+
 echo -e "${RED}======================================"
 echo "  NUKE COMPLETE"
 echo "======================================${NC}"

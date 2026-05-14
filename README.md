@@ -59,12 +59,14 @@ bash scan.sh
 # 2. Nuke everything (requires sudo for process kills + hosts file)
 sudo bash nuke.sh
 
-# 3. Install the watchdog (no sudo needed)
+# 3. Install the watchdog (NO sudo — run as your user)
 bash install-watchdog.sh
 
 # 4. Reboot to fully kill SIP-protected daemons
 sudo reboot
 ```
+
+**Important:** Do NOT use `sudo su` before running `nuke.sh` — always use `sudo bash nuke.sh` directly. Do NOT use `sudo` for `install-watchdog.sh` or `uninstall.sh`.
 
 ## After running
 
@@ -74,6 +76,11 @@ sudo reboot
   ```bash
   cat ~/.macos-hardening/watchdog.log
   ```
+
+### Known side effects
+- **App notifications** may stop appearing (Calendar alerts, Reminders, Messages previews) because `UserNotifications` is locked. They resume after uninstall.
+- **Location services** will be degraded — Maps, Weather, and Find My may not work correctly because `geod` is locked.
+- **Speech recognition** data is cleared — Siri/Dictation may need to relearn your voice.
 
 ## Limitations
 
