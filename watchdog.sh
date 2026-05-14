@@ -31,7 +31,7 @@ FOUND_ISSUE=false
 # Kill tracking processes
 # ============================================================
 
-for proc in mediaanalysisd triald parsecd; do
+for proc in mediaanalysisd triald parsecd analyticsagent inputanalyticsd geoanalyticsd diagnostics_agent diagnosticextensionsd feedbackd BiomeAgent biomesyncd; do
     if pgrep -x "$proc" > /dev/null 2>&1; then
         pkill -9 "$proc" 2>/dev/null
         log "KILLED $proc"
@@ -39,7 +39,7 @@ for proc in mediaanalysisd triald parsecd; do
     fi
 done
 
-for root_proc in aned triald_system; do
+for root_proc in aned triald_system analyticsd osanalyticshelper; do
     if pgrep -x "$root_proc" > /dev/null 2>&1; then
         if pkill -9 "$root_proc" 2>/dev/null; then
             log "KILLED $root_proc"
@@ -91,6 +91,7 @@ relock "$HOME/Library/Group Containers/group.com.apple.PegasusConfiguration/sess
 relock "$HOME/Library/Group Containers/group.com.apple.PegasusConfiguration/feedback"
 relock "$HOME/Library/Group Containers/group.com.apple.PegasusConfiguration/EngagedCompletions"
 relock "$HOME/Library/Group Containers/group.com.apple.PegasusConfiguration/local"
+relock "$HOME/Library/Caches/com.apple.parsecd"
 
 # Surveillance containers
 relock "$HOME/Library/PersonalizationPortrait"
@@ -101,11 +102,34 @@ relock "$HOME/Library/Group Containers/group.com.apple.UserNotifications"
 relock "$HOME/Library/Group Containers/group.com.apple.chronod"
 relock "$HOME/Library/Group Containers/group.com.apple.CoreSpeech"
 relock "$HOME/Library/Group Containers/group.com.apple.siri.remembers"
+relock "$HOME/Library/Assistant"
+relock "$HOME/Library/HTTPStorages/com.apple.siriknowledged"
 relock "$HOME/Library/Group Containers/group.com.apple.siri.userfeedbacklearning"
+relock "$HOME/Library/Group Containers/group.com.apple.feedbacklogger"
+relock "$HOME/Library/Group Containers/group.com.apple.siri.GMSSELFIngestor"
+relock "$HOME/Library/Group Containers/group.com.apple.siri.sirisuggestions"
 relock "$HOME/Library/Group Containers/group.com.apple.replayd"
 relock "$HOME/Library/Group Containers/group.com.apple.screencapture/ScreenRecordings"
 relock "$HOME/Library/Application Support/com.apple.replayd"
 relock "$HOME/Library/AppleMediaServices/Engagement"
+relock "$HOME/Library/Application Support/com.apple.ap.promotedcontentd"
+relock "$HOME/Library/Group Containers/group.com.apple.contentdelivery"
+relock "$HOME/Library/Containers/com.apple.lighthouse.BiomeLibraryEventUploader"
+relock "$HOME/Library/Containers/com.apple.lighthouse.BiomeSELFIngestor"
+relock "$HOME/Library/Containers/com.apple.lighthouse.IFTelemetrySELFIngestor"
+relock "$HOME/Library/Containers/com.apple.lighthouse.IFTranscriptSELFIngestor"
+relock "$HOME/Library/Containers/com.apple.lighthouse.SiriCoreMetricsWorker"
+relock "$HOME/Library/Containers/com.apple.lighthouse.PnROnDeviceWorker"
+relock "$HOME/Library/Containers/com.apple.lighthouse.IEMetricsWorker"
+relock "$HOME/Library/Containers/com.apple.lighthouse.SAExtensionOrchestrator"
+relock "$HOME/Library/Containers/com.apple.LighthouseBitacoraFramework.BitacoraWorker"
+relock "$HOME/Library/Containers/com.apple.LighthouseBitacoraFramework.LighthouseBitacoraPlugin"
+relock "$HOME/Library/Containers/com.apple.biome.BiomeStreams.BiomeLighthousePlugin"
+relock "$HOME/Library/Containers/com.apple.proactive.AppleIntelligenceReportingSELFIngestor"
+relock "$HOME/Library/Containers/com.apple.proactive.PersonalUnderstanding.LighthousePlugin"
+relock "$HOME/Library/Containers/com.apple.siri.SiriSuggestionsLightHousePlugin"
+relock "$HOME/Library/Logs/DiagnosticReports"
+relock "$HOME/Library/Application Support/CrashReporter"
 
 # Spotlight ML pipelines
 relock "$HOME/Library/Metadata/CoreSpotlight/SpotlightKnowledge/index.V2/DocumentProcessing"
@@ -156,7 +180,7 @@ fi
 # ============================================================
 
 USER_ID=$(id -u)
-for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd; do
+for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd com.apple.analyticsd com.apple.analyticsagent com.apple.osanalyticshelper com.apple.inputanalyticsd com.apple.geoanalyticsd com.apple.diagnostics_agent com.apple.diagnosticextensionsd com.apple.feedbackd com.apple.BiomeAgent com.apple.biomesyncd; do
     launchctl disable "user/$USER_ID/$svc" 2>/dev/null
 done
 

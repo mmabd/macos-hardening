@@ -46,27 +46,35 @@ Chrome silently downloads ~4.5 GB of ML models: Gemini Nano (full LLM), toxicity
 ## What this tool does
 
 1. **`scan.sh`** — Read-only scan. Shows everything Apple is collecting, how much data, whether processes are running. Run this first.
-2. **`nuke.sh`** — Purges all tracking data, locks directories with `chmod 000`, kills processes, disables services, blocks telemetry domains in `/etc/hosts`, and hardens Spotlight settings.
-3. **`install-watchdog.sh`** — Installs a LaunchAgent that runs every 30 minutes to re-lock anything Apple tries to undo after updates or reboots.
-4. **`uninstall.sh`** — Removes the watchdog and restores directory permissions. Purged data stays gone.
+2. **`nuke.sh`** — Purges all tracking data, locks directories with `chmod 000`, kills processes, disables services, blocks 19 telemetry domains in `/etc/hosts`, and hardens Spotlight/Siri/ad settings. Safe defaults — nothing user-facing breaks.
+3. **`nuke-plus.sh`** — Optional extended hardening. Interactive — asks y/N for each item. Disables features like Handoff, Screen Time, Siri daemons, Spotlight knowledge, proactive suggestions, location routines, and cloud telemetry. Run after `nuke.sh`.
+4. **`install-watchdog.sh`** — Installs a LaunchAgent that runs every 30 minutes to re-lock anything Apple tries to undo after updates or reboots.
+5. **`uninstall.sh`** — Removes the watchdog and restores directory permissions. Purged data stays gone.
 
 ## Usage
 
 ```bash
-# 1. See what Apple is collecting
+# 1. See what Apple is collecting (read-only, safe)
 bash scan.sh
 
-# 2. Nuke everything (requires sudo for process kills + hosts file)
+# 2. Nuke all tracking data (requires sudo, asks for confirmation)
 sudo bash nuke.sh
 
-# 3. Install the watchdog (NO sudo — run as your user)
+# 3. Optional: extended hardening (interactive, asks y/N per feature)
+sudo bash nuke-plus.sh
+
+# 4. Install the watchdog (NO sudo — run as your user)
 bash install-watchdog.sh
 
-# 4. Reboot to fully kill SIP-protected daemons
+# 5. Reboot to fully kill SIP-protected daemons
 sudo reboot
 ```
 
-**Important:** Do NOT use `sudo su` before running `nuke.sh` — always use `sudo bash nuke.sh` directly. Do NOT use `sudo` for `install-watchdog.sh` or `uninstall.sh`.
+**Important:**
+- Always use `sudo bash nuke.sh` directly — do NOT use `sudo su` first
+- Do NOT use `sudo` for `install-watchdog.sh` or `uninstall.sh`
+- `nuke.sh` is safe defaults — no user-facing features break
+- `nuke-plus.sh` disables real features — it tells you exactly what breaks before each step
 
 ## After running
 
@@ -112,6 +120,21 @@ sudo reboot
 0.0.0.0 api-glb-aeun1a.smoot.apple.com
 0.0.0.0 api-glb-aeun1b.smoot.apple.com
 0.0.0.0 cdn.smoot.apple.com
+0.0.0.0 fbs.smoot.apple.com
+0.0.0.0 xp.apple.com
+0.0.0.0 metrics.apple.com
+0.0.0.0 metrics.icloud.com
+0.0.0.0 idiagnostics.apple.com
+0.0.0.0 diagnostics.apple.com
+0.0.0.0 securemetrics.apple.com
+0.0.0.0 supportmetrics.apple.com
+0.0.0.0 feedbackws.apple.com
+0.0.0.0 radarsubmissions.apple.com
+0.0.0.0 iphonesubmissions.apple.com
+0.0.0.0 pancake.apple.com
+0.0.0.0 weather-analytics.apple.com
+0.0.0.0 books-analytics.apple.com
+0.0.0.0 notes-analytics.apple.com
 ```
 
 ### Directories locked (chmod 000)

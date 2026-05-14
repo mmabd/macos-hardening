@@ -85,7 +85,7 @@ delete_file() {
 echo -e "${YELLOW}[1/9] Killing tracking processes...${NC}"
 # ============================================================
 
-for proc in mediaanalysisd aned triald triald_system parsecd mdworker mdbulkimport; do
+for proc in mediaanalysisd aned triald triald_system parsecd mdworker mdbulkimport analyticsd analyticsagent osanalyticshelper inputanalyticsd geoanalyticsd diagnostics_agent diagnosticextensionsd feedbackd BiomeAgent biomesyncd; do
     if pkill -9 -x "$proc" 2>/dev/null; then
         echo -e "  ${GREEN}KILLED${NC} $proc"
     fi
@@ -95,7 +95,7 @@ done
 echo -e "\n${YELLOW}[2/9] Disabling tracking services...${NC}"
 # ============================================================
 
-for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd; do
+for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd com.apple.analyticsd com.apple.analyticsagent com.apple.osanalyticshelper com.apple.inputanalyticsd com.apple.geoanalyticsd com.apple.diagnostics_agent com.apple.diagnosticextensionsd com.apple.feedbackd com.apple.BiomeAgent com.apple.biomesyncd; do
     launchctl disable "system/$svc" 2>/dev/null || true
     launchctl disable "user/$USER_ID/$svc" 2>/dev/null || true
     echo -e "  ${GREEN}DISABLED${NC} $svc"
@@ -132,6 +132,7 @@ purge_and_lock "$PEGASUS/session" "Pegasus/session"
 purge_and_lock "$PEGASUS/feedback" "Pegasus/feedback"
 purge_and_lock "$PEGASUS/EngagedCompletions" "Pegasus/EngagedCompletions"
 purge_and_lock "$PEGASUS/local" "Pegasus/local"
+purge_and_lock "$REAL_HOME/Library/Caches/com.apple.parsecd" "Parsecd Silhouette cache (user profiling)"
 delete_file "$REAL_HOME/Library/Preferences/com.apple.parsecd.plist" "parsecd preferences"
 delete_file "$REAL_HOME/Library/Preferences/replayd.plist" "replayd preferences"
 delete_file "$REAL_HOME/Library/Preferences/com.apple.replayd.plist" "replayd preferences (alt)"
@@ -148,11 +149,34 @@ purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.UserNotifica
 purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.chronod" "chronod (time tracking)"
 purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.CoreSpeech" "CoreSpeech"
 purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.siri.remembers" "siri.remembers"
+purge_and_lock "$REAL_HOME/Library/Assistant" "Siri assistant data (LLM cache + vocabulary)"
+purge_and_lock "$REAL_HOME/Library/HTTPStorages/com.apple.siriknowledged" "siriknowledged HTTP cache"
 purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.siri.userfeedbacklearning" "Siri feedback learning"
+purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.feedbacklogger" "Siri telemetry upload queue"
+purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.siri.GMSSELFIngestor" "Siri GMS metrics"
+purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.siri.sirisuggestions" "Siri suggestions cache"
 purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.replayd" "replayd (screen capture tracking)"
 purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.screencapture/ScreenRecordings" "ScreenRecordings"
 purge_and_lock "$REAL_HOME/Library/Application Support/com.apple.replayd" "replayd app support"
 purge_and_lock "$REAL_HOME/Library/AppleMediaServices/Engagement" "AppleMediaServices engagement"
+purge_and_lock "$REAL_HOME/Library/Application Support/com.apple.ap.promotedcontentd" "Promoted content / ads"
+purge_and_lock "$REAL_HOME/Library/Group Containers/group.com.apple.contentdelivery" "Content delivery (tips/promos)"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.BiomeLibraryEventUploader" "Lighthouse/BiomeEventUploader"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.BiomeSELFIngestor" "Lighthouse/BiomeSELFIngestor"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.IFTelemetrySELFIngestor" "Lighthouse/IFTelemetry"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.IFTranscriptSELFIngestor" "Lighthouse/IFTranscript"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.SiriCoreMetricsWorker" "Lighthouse/SiriMetrics"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.PnROnDeviceWorker" "Lighthouse/PnROnDevice"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.IEMetricsWorker" "Lighthouse/IEMetrics"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.lighthouse.SAExtensionOrchestrator" "Lighthouse/SAExtension"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.LighthouseBitacoraFramework.BitacoraWorker" "Lighthouse/BitacoraWorker"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.LighthouseBitacoraFramework.LighthouseBitacoraPlugin" "Lighthouse/BitacoraPlugin"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.biome.BiomeStreams.BiomeLighthousePlugin" "Lighthouse/BiomeLighthousePlugin"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.proactive.AppleIntelligenceReportingSELFIngestor" "Proactive/AIReporting"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.proactive.PersonalUnderstanding.LighthousePlugin" "Proactive/PersonalUnderstanding"
+purge_and_lock "$REAL_HOME/Library/Containers/com.apple.siri.SiriSuggestionsLightHousePlugin" "Siri/SuggestionsLighthouse"
+purge_and_lock "$REAL_HOME/Library/Logs/DiagnosticReports" "DiagnosticReports (crash dumps staged for upload)"
+purge_and_lock "$REAL_HOME/Library/Application Support/CrashReporter" "CrashReporter (per-app crash history)"
 
 # ============================================================
 echo -e "\n${YELLOW}[7/9] Nuking Spotlight ML pipelines...${NC}"
@@ -223,6 +247,9 @@ echo -e "  ${GREEN}SET${NC} Siri disabled"
 sudo -u "$REAL_USER" defaults write com.apple.CrashReporter DialogType -string "none"
 echo -e "  ${GREEN}SET${NC} Crash reporter dialogs disabled"
 
+sudo -u "$REAL_USER" defaults write com.apple.AdLib allowIdentifierForAdvertising -bool false
+echo -e "  ${GREEN}SET${NC} Ad tracking identifier disabled"
+
 # ============================================================
 echo -e "\n${YELLOW}Blocking telemetry domains in /etc/hosts...${NC}"
 # ============================================================
@@ -236,8 +263,23 @@ if ! grep -q "$HOSTS_MARKER" /etc/hosts 2>/dev/null; then
 0.0.0.0 api-glb-aeun1a.smoot.apple.com
 0.0.0.0 api-glb-aeun1b.smoot.apple.com
 0.0.0.0 cdn.smoot.apple.com
+0.0.0.0 fbs.smoot.apple.com
+0.0.0.0 xp.apple.com
+0.0.0.0 metrics.apple.com
+0.0.0.0 metrics.icloud.com
+0.0.0.0 idiagnostics.apple.com
+0.0.0.0 diagnostics.apple.com
+0.0.0.0 securemetrics.apple.com
+0.0.0.0 supportmetrics.apple.com
+0.0.0.0 feedbackws.apple.com
+0.0.0.0 radarsubmissions.apple.com
+0.0.0.0 iphonesubmissions.apple.com
+0.0.0.0 pancake.apple.com
+0.0.0.0 weather-analytics.apple.com
+0.0.0.0 books-analytics.apple.com
+0.0.0.0 notes-analytics.apple.com
 EOF
-    echo -e "  ${GREEN}BLOCKED${NC} 4 Apple telemetry domains in /etc/hosts"
+    echo -e "  ${GREEN}BLOCKED${NC} 19 Apple telemetry domains in /etc/hosts"
 else
     echo -e "  ${YELLOW}SKIP${NC} hosts file already has telemetry blocks"
 fi
