@@ -31,7 +31,7 @@ FOUND_ISSUE=false
 # Kill tracking processes
 # ============================================================
 
-for proc in mediaanalysisd triald parsecd analyticsagent inputanalyticsd geoanalyticsd diagnostics_agent diagnosticextensionsd feedbackd BiomeAgent biomesyncd; do
+for proc in mediaanalysisd triald parsecd analyticsagent inputanalyticsd geoanalyticsd diagnostics_agent diagnosticextensionsd feedbackd BiomeAgent biomesyncd biomed symptomsd audioanalyticsd wifianalyticsd ecosystemanalyticsd assistantd siriinferenced sirittsd siriactionsd siriknowledged SiriAUSP assistant_cdmd photoanalysisd weatherd remindd tipsd; do
     if pgrep -x "$proc" > /dev/null 2>&1; then
         pkill -9 "$proc" 2>/dev/null
         log "KILLED $proc"
@@ -58,7 +58,7 @@ relock() {
     local dir="$1"
     if [ -d "$dir" ]; then
         local perms=$(stat -f '%OLp' "$dir" 2>/dev/null)
-        if [ "$perms" != "000" ]; then
+        if [ "$perms" != "0" ] && [ "$perms" != "000" ]; then
             find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
             if chmod 000 "$dir" 2>/dev/null; then
                 log "RE-LOCKED $dir (was $perms)"
@@ -180,7 +180,7 @@ fi
 # ============================================================
 
 USER_ID=$(id -u)
-for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd com.apple.analyticsd com.apple.analyticsagent com.apple.osanalyticshelper com.apple.inputanalyticsd com.apple.geoanalyticsd com.apple.diagnostics_agent com.apple.diagnosticextensionsd com.apple.feedbackd com.apple.BiomeAgent com.apple.biomesyncd; do
+for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd com.apple.analyticsd com.apple.analyticsagent com.apple.osanalyticshelper com.apple.inputanalyticsd com.apple.geoanalyticsd com.apple.diagnostics_agent com.apple.diagnosticextensionsd com.apple.feedbackd com.apple.BiomeAgent com.apple.biomesyncd com.apple.biomed com.apple.symptomsd com.apple.symptomsd-diag com.apple.audioanalyticsd com.apple.wifianalyticsd com.apple.ecosystemanalyticsd com.apple.assistantd com.apple.siriinferenced com.apple.sirittsd com.apple.siriactionsd com.apple.siriknowledged com.apple.SiriAUSP com.apple.assistant_cdmd com.apple.photoanalysisd com.apple.weatherd com.apple.remindd com.apple.tipsd; do
     launchctl disable "user/$USER_ID/$svc" 2>/dev/null
 done
 

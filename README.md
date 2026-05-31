@@ -46,10 +46,11 @@ Chrome silently downloads ~4.5 GB of ML models: Gemini Nano (full LLM), toxicity
 ## What this tool does
 
 1. **`scan.sh`** — Read-only scan. Shows everything Apple is collecting, how much data, whether processes are running. Run this first.
-2. **`nuke.sh`** — Purges all tracking data, locks directories with `chmod 000`, kills processes, disables services, blocks 19 telemetry domains in `/etc/hosts`, and hardens Spotlight/Siri/ad settings. Safe defaults — nothing user-facing breaks.
+2. **`nuke.sh`** — Purges all tracking data, locks directories with `chmod 000`, kills processes, disables services, blocks 26 telemetry domains in `/etc/hosts`, and hardens Spotlight/Siri/ad settings. Safe defaults — nothing user-facing breaks.
 3. **`nuke-plus.sh`** — Optional extended hardening. Interactive — asks y/N for each item. Disables features like Handoff, Screen Time, Siri daemons, Spotlight knowledge, proactive suggestions, location routines, and cloud telemetry. Run after `nuke.sh`.
 4. **`install-watchdog.sh`** — Installs a LaunchAgent that runs every 30 minutes to re-lock anything Apple tries to undo after updates or reboots.
-5. **`uninstall.sh`** — Removes the watchdog and restores directory permissions. Purged data stays gone.
+5. **`install-kill-agent.sh`** — **(macOS Sequoia+ only)** Installs a LaunchAgent + LaunchDaemon that actively kill tracking processes every 60 seconds. Required on Darwin 25+ where `launchctl disable` doesn't survive SIP re-enable.
+6. **`uninstall.sh`** — Removes the watchdog and restores directory permissions. Purged data stays gone.
 
 ## Usage
 
@@ -72,6 +73,12 @@ sudo bash nuke-plus.sh
 
 # 4. Install the watchdog (NO sudo — run as your user)
 bash install-watchdog.sh
+
+# 4.5 Install kill agent (macOS Sequoia+ only — Darwin 25+)
+# On Sequoia+, launchctl disable doesn't survive SIP re-enable.
+# This installs a persistent LaunchAgent + LaunchDaemon that kill tracking
+# processes every 60 seconds regardless of SIP state.
+bash install-kill-agent.sh
 
 # 5. Reboot to fully kill SIP-protected daemons
 sudo reboot
@@ -100,6 +107,8 @@ sudo reboot
 ## Limitations
 
 - **SIP-protected daemons** (`aned`, `triald_system`) run as root and macOS will resurrect them on every boot. The watchdog kills user-level variants; the `/etc/hosts` blocks ensure even root-level daemons can't exfiltrate data.
+- **macOS Sequoia+ (Darwin 25+):** `launchctl disable` does NOT persist when SIP is re-enabled. Re-enabling SIP resets the launchd disabled database entirely, allowing all tracking processes to respawn on the next reboot. The solution is `install-kill-agent.sh`, which installs a LaunchAgent + LaunchDaemon that actively kill tracking processes every 60 seconds — this is not affected by SIP state because `/Library/LaunchDaemons/` is not SIP-protected.
+- **macOS Application Firewall (`socketfilterfw --block`) only blocks INCOMING connections** — it has no effect on outbound telemetry. Do not waste time trying to use it to block Apple's analytics traffic. Use `/etc/hosts` blocks instead (already done by `nuke.sh`).
 - **macOS updates** may reset directory permissions and re-enable services. The watchdog catches this within 30 minutes. The hosts file may also be overwritten — the watchdog logs a warning if telemetry blocks are missing.
 - **This does not affect iOS.** Your iPhone runs the same pipelines but without root access, you can't do anything about it. Consider GrapheneOS on a Pixel.
 
@@ -114,6 +123,23 @@ sudo reboot
 | `parsecd` | Pegasus/Spotlight telemetry |
 | `mdworker` | Spotlight ML worker |
 | `mdbulkimport` | Spotlight bulk indexer |
+| `biomed` | Behavioral tracking daemon (user-level Biome variant) |
+| `symptomsd` | Network diagnostics/telemetry (runs as root) |
+| `symptomsd-diag` | symptomsd diagnostic agent |
+| `audioanalyticsd` | Mic usage analytics (runs as root) |
+| `wifianalyticsd` | WiFi analytics (runs as root) |
+| `ecosystemanalyticsd` | Ecosystem analytics (runs as root) |
+| `assistantd` | Siri assistant daemon |
+| `siriinferenced` | Siri on-device inference |
+| `sirittsd` | Siri text-to-speech |
+| `siriactionsd` | Siri actions dispatcher |
+| `siriknowledged` | Siri knowledge store |
+| `SiriAUSP` | Siri audio signal processing |
+| `assistant_cdmd` | Siri continuous dialog manager |
+| `photoanalysisd` | Photo ML analysis |
+| `weatherd` | Weather daemon |
+| `remindd` | Reminders daemon |
+| `tipsd` | Tips/onboarding daemon |
 
 ### Processes monitored (scan only)
 | Process | What it does |
@@ -142,6 +168,13 @@ sudo reboot
 0.0.0.0 weather-analytics.apple.com
 0.0.0.0 books-analytics.apple.com
 0.0.0.0 notes-analytics.apple.com
+0.0.0.0 analytics.apple.com
+0.0.0.0 iadsdk.apple.com
+0.0.0.0 error-reporting.apple.com
+0.0.0.0 crashes.apple.com
+0.0.0.0 iosdiagnostics.apple.com
+0.0.0.0 diagassets.apple.com
+0.0.0.0 symptomsd.apple.com
 ```
 
 ### Directories locked (chmod 000)

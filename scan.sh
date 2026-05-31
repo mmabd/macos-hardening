@@ -32,7 +32,7 @@ check_dir() {
         local size_mb=$((size / 1024))
         TOTAL_SIZE=$((TOTAL_SIZE + size))
 
-        if [ "$perms" = "000" ]; then
+        if [ "$perms" = "000" ] || [ "$perms" = "0" ]; then
             echo -e "  ${GREEN}LOCKED${NC}  $label (${size_mb} MB)"
         elif [ "$size" -gt 100 ]; then
             echo -e "  ${RED}ACTIVE${NC}  $label (${size_mb} MB)"
@@ -75,6 +75,22 @@ check_process "diagnostics_agent" "diagnostics_agent (diagnostics)"
 check_process "feedbackd" "feedbackd (feedback collection)"
 check_process "BiomeAgent" "BiomeAgent (behavioral data)"
 check_process "biomesyncd" "biomesyncd (behavioral sync)"
+check_process "biomed" "biomed (behavioral daemon)"
+check_process "symptomsd" "symptomsd (network telemetry)"
+check_process "audioanalyticsd" "audioanalyticsd (mic usage analytics)"
+check_process "wifianalyticsd" "wifianalyticsd (wifi analytics)"
+check_process "ecosystemanalyticsd" "ecosystemanalyticsd (ecosystem analytics)"
+check_process "assistantd" "assistantd (Siri assistant)"
+check_process "siriinferenced" "siriinferenced (Siri inference)"
+check_process "sirittsd" "sirittsd (Siri TTS)"
+check_process "siriactionsd" "siriactionsd (Siri actions)"
+check_process "siriknowledged" "siriknowledged (Siri knowledge)"
+check_process "SiriAUSP" "SiriAUSP (Siri audio processing)"
+check_process "assistant_cdmd" "assistant_cdmd (Siri dialog manager)"
+check_process "photoanalysisd" "photoanalysisd (photo ML)"
+check_process "weatherd" "weatherd (weather daemon)"
+check_process "remindd" "remindd (reminders daemon)"
+check_process "tipsd" "tipsd (tips daemon)"
 check_process "corespotlightd" "corespotlightd (Spotlight ML)"
 check_process "mds_stores" "mds_stores (Spotlight indexer)"
 
@@ -210,6 +226,31 @@ if grep -q "smoot.apple.com" /etc/hosts 2>/dev/null; then
     echo -e "  ${GREEN}BLOCKED${NC} Apple telemetry domains in /etc/hosts"
 else
     echo -e "  ${RED}OPEN${NC}    Apple telemetry domains NOT blocked in /etc/hosts"
+fi
+
+if grep -q "analytics.apple.com" /etc/hosts 2>/dev/null; then
+    echo -e "  ${GREEN}BLOCKED${NC} Analytics/crash/diagnostics domains in /etc/hosts"
+else
+    echo -e "  ${RED}OPEN${NC}    Analytics/crash/diagnostics domains NOT blocked in /etc/hosts"
+fi
+
+USER_AGENT_PLIST="$HOME/Library/LaunchAgents/com.maisara.kill-telemetry.plist"
+SYSTEM_DAEMON_PLIST="/Library/LaunchDaemons/com.maisara.kill-telemetry-system.plist"
+
+if [ -f "$USER_AGENT_PLIST" ]; then
+    if launchctl list | grep -q "com.maisara.kill-telemetry" 2>/dev/null; then
+        echo -e "  ${GREEN}ACTIVE${NC}  Persistent kill agent (LaunchAgent) — Sequoia+ fix loaded"
+    else
+        echo -e "  ${YELLOW}EXISTS${NC}  Persistent kill agent plist found but NOT loaded"
+    fi
+else
+    echo -e "  ${YELLOW}ABSENT${NC}  Persistent kill agent NOT installed (needed on macOS Sequoia+)"
+fi
+
+if [ -f "$SYSTEM_DAEMON_PLIST" ]; then
+    echo -e "  ${GREEN}EXISTS${NC}  System kill daemon (LaunchDaemon) — Sequoia+ fix installed"
+else
+    echo -e "  ${YELLOW}ABSENT${NC}  System kill daemon NOT installed (needed on macOS Sequoia+)"
 fi
 
 # ============================================================

@@ -85,7 +85,7 @@ delete_file() {
 echo -e "${YELLOW}[1/9] Killing tracking processes...${NC}"
 # ============================================================
 
-for proc in mediaanalysisd aned triald triald_system parsecd mdworker mdbulkimport analyticsd analyticsagent osanalyticshelper inputanalyticsd geoanalyticsd diagnostics_agent diagnosticextensionsd feedbackd BiomeAgent biomesyncd; do
+for proc in mediaanalysisd aned triald triald_system parsecd mdworker mdbulkimport analyticsd analyticsagent osanalyticshelper inputanalyticsd geoanalyticsd diagnostics_agent diagnosticextensionsd feedbackd BiomeAgent biomesyncd biomed symptomsd audioanalyticsd wifianalyticsd ecosystemanalyticsd assistantd siriinferenced sirittsd siriactionsd siriknowledged SiriAUSP assistant_cdmd photoanalysisd weatherd remindd tipsd; do
     if pkill -9 -x "$proc" 2>/dev/null; then
         echo -e "  ${GREEN}KILLED${NC} $proc"
     fi
@@ -95,7 +95,7 @@ done
 echo -e "\n${YELLOW}[2/9] Disabling tracking services...${NC}"
 # ============================================================
 
-for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd com.apple.analyticsd com.apple.analyticsagent com.apple.osanalyticshelper com.apple.inputanalyticsd com.apple.geoanalyticsd com.apple.diagnostics_agent com.apple.diagnosticextensionsd com.apple.feedbackd com.apple.BiomeAgent com.apple.biomesyncd; do
+for svc in com.apple.mediaanalysisd com.apple.aned com.apple.triald com.apple.parsecd com.apple.analyticsd com.apple.analyticsagent com.apple.osanalyticshelper com.apple.inputanalyticsd com.apple.geoanalyticsd com.apple.diagnostics_agent com.apple.diagnosticextensionsd com.apple.feedbackd com.apple.BiomeAgent com.apple.biomesyncd com.apple.biomed com.apple.symptomsd com.apple.symptomsd-diag com.apple.audioanalyticsd com.apple.wifianalyticsd com.apple.ecosystemanalyticsd com.apple.assistantd com.apple.siriinferenced com.apple.sirittsd com.apple.siriactionsd com.apple.siriknowledged com.apple.SiriAUSP com.apple.assistant_cdmd com.apple.photoanalysisd com.apple.weatherd com.apple.remindd com.apple.tipsd; do
     launchctl disable "system/$svc" 2>/dev/null || true
     launchctl disable "user/$USER_ID/$svc" 2>/dev/null || true
     echo -e "  ${GREEN}DISABLED${NC} $svc"
@@ -278,10 +278,39 @@ if ! grep -q "$HOSTS_MARKER" /etc/hosts 2>/dev/null; then
 0.0.0.0 weather-analytics.apple.com
 0.0.0.0 books-analytics.apple.com
 0.0.0.0 notes-analytics.apple.com
+0.0.0.0 analytics.apple.com
+0.0.0.0 iadsdk.apple.com
+0.0.0.0 error-reporting.apple.com
+0.0.0.0 crashes.apple.com
+0.0.0.0 iosdiagnostics.apple.com
+0.0.0.0 diagassets.apple.com
+0.0.0.0 symptomsd.apple.com
 EOF
-    echo -e "  ${GREEN}BLOCKED${NC} 19 Apple telemetry domains in /etc/hosts"
+    echo -e "  ${GREEN}BLOCKED${NC} 26 Apple telemetry domains in /etc/hosts"
 else
     echo -e "  ${YELLOW}SKIP${NC} hosts file already has telemetry blocks"
+fi
+
+# ============================================================
+echo -e "\n${YELLOW}[10/9] Installing persistent kill agent (macOS Sequoia+ fix)...${NC}"
+# ============================================================
+# On macOS Sequoia+ (Darwin 25+), launchctl disable for system services does NOT
+# persist when SIP is re-enabled. SIP re-enable resets the launchd disabled database.
+# The fix is a LaunchAgent + LaunchDaemon that kill tracking processes every 60 seconds.
+
+SCRIPT_DIR="$(dirname "$0")"
+if [ -f "$SCRIPT_DIR/install-kill-agent.sh" ]; then
+    echo -e "  ${YELLOW}NOTE${NC}  Running on Darwin $(uname -r | cut -d. -f1)"
+    echo -e "  ${YELLOW}NOTE${NC}  On Sequoia+ (Darwin 25+), launchctl disable doesn't survive SIP"
+    echo -e "  ${YELLOW}NOTE${NC}  re-enable — install the persistent kill agent to compensate:"
+    echo ""
+    # Run as the real user (not root) since LaunchAgents must be owned by the user
+    sudo -u "$REAL_USER" bash "$SCRIPT_DIR/install-kill-agent.sh"
+else
+    echo -e "  ${YELLOW}SKIP${NC}  install-kill-agent.sh not found alongside nuke.sh"
+    echo -e "  ${YELLOW}NOTE${NC}  On macOS Sequoia+ (Darwin 25+), re-enabling SIP resets the"
+    echo -e "  ${YELLOW}NOTE${NC}  launchd disabled database — tracking processes will respawn."
+    echo -e "  ${YELLOW}NOTE${NC}  Run: bash install-kill-agent.sh  to install the persistent fix."
 fi
 
 # ============================================================
